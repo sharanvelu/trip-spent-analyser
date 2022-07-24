@@ -36,6 +36,9 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
         });
+
+        // Global Routes
+        $this->bootGlobalRoutes();
     }
 
     /**
@@ -47,6 +50,19 @@ class RouteServiceProvider extends ServiceProvider
     {
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+    }
+
+    /**
+     * Routes that are irrespective of the domain name
+     *
+     * @return void
+     */
+    private function bootGlobalRoutes()
+    {
+        // Health Check Route
+        Route::get('health-check', function () {
+            return response('', 200);
         });
     }
 }
