@@ -10,8 +10,9 @@ use App\Http\Requests\SpaceUpdateRequest;
 class SpaceController extends Controller
 {
     /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function index(Request $request)
     {
@@ -28,8 +29,9 @@ class SpaceController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function create(Request $request)
     {
@@ -39,38 +41,50 @@ class SpaceController extends Controller
     }
 
     /**
-     * @param \App\Http\Requests\SpaceStoreRequest $request
+     * @param SpaceStoreRequest $request
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function store(SpaceStoreRequest $request)
     {
         $this->authorize('create', Space::class);
 
         $validated = $request->validated();
+        $validated['created_by'] = auth()->id();
 
         $space = Space::create($validated);
 
         return redirect()
-            ->route('spaces.edit', $space)
+            ->route('spaces.show', $space)
             ->withSuccess(__('crud.common.created'));
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Space $space
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Space $space
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function show(Request $request, Space $space)
     {
         $this->authorize('view', $space);
 
-        return view('app.spaces.show', compact('space'));
+        $search = $request->get('search', '');
+
+        $trips = $space->trips()
+            ->search($search)
+            ->latest()
+            ->paginate(5)
+            ->withQueryString();
+
+        return view('app.spaces.show', compact('space', 'trips', 'search'));
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Space $space
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Space $space
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function edit(Request $request, Space $space)
     {
@@ -80,9 +94,10 @@ class SpaceController extends Controller
     }
 
     /**
-     * @param \App\Http\Requests\SpaceUpdateRequest $request
-     * @param \App\Models\Space $space
+     * @param SpaceUpdateRequest $request
+     * @param Space $space
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function update(SpaceUpdateRequest $request, Space $space)
     {
@@ -98,9 +113,10 @@ class SpaceController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Space $space
+     * @param Request $request
+     * @param Space $space
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function destroy(Request $request, Space $space)
     {

@@ -15,8 +15,8 @@ return new class extends Migration {
         Schema::create('spaces', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
+            $table->text('description')->nullable();
             $table->unsignedBigInteger('created_by');
-            $table->text('description');
 
             $table->timestamps();
             $table->softDeletes();

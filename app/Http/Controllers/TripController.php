@@ -12,10 +12,12 @@ use App\Http\Requests\TripUpdateRequest;
 class TripController extends Controller
 {
     /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Space $space
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function index(Request $request)
+    public function index(Request $request, Space $space)
     {
         $this->authorize('view-any', Trip::class);
 
@@ -30,88 +32,104 @@ class TripController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @param Space $space
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function create(Request $request)
+    public function create(Space $space)
     {
         $this->authorize('create', Trip::class);
 
-        $spaces = Space::pluck('name', 'id');
-
-        return view('app.trips.create', compact('spaces'));
+        return view('app.trips.create', compact('space'));
     }
 
     /**
-     * @param \App\Http\Requests\TripStoreRequest $request
+     * @param TripStoreRequest $request
+     * @param Space $space
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function store(TripStoreRequest $request)
+    public function store(TripStoreRequest $request, Space $space)
     {
         $this->authorize('create', Trip::class);
 
         $validated = $request->validated();
+        $validated['created_by'] = auth()->id();
+        $validated['space_id'] = $space->id;
 
         $trip = Trip::create($validated);
 
         return redirect()
-            ->route('trips.edit', $trip)
+            ->route('trips.show', $trip)
             ->withSuccess(__('crud.common.created'));
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Trip $trip
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Space $space
+     * @param Trip $trip
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function show(Request $request, Trip $trip)
+    public function show(Request $request, Space $space, Trip $trip)
     {
         $this->authorize('view', $trip);
 
-        return view('app.trips.show', compact('trip'));
+        $search = $request->get('search', '');
+
+        $expenses = $trip->expenses()
+            ->search($search)
+            ->latest()
+            ->paginate(5)
+            ->withQueryString();
+
+        return view('app.trips.show', compact('trip', 'space', 'expenses', 'search'));
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Trip $trip
-     * @return \Illuminate\Http\Response
+     * @param Space $space
+     * @param Trip $trip
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function edit(Request $request, Trip $trip)
+    public function edit(Space $space, Trip $trip)
     {
         $this->authorize('update', $trip);
 
-        $spaces = Space::pluck('name', 'id');
+        $users = $trip->space->users()->get();
 
-        $users = User::get();
-
-        return view('app.trips.edit', compact('trip', 'spaces', 'users'));
+        return view('app.trips.edit', compact('trip', 'users', 'space'));
     }
 
     /**
-     * @param \App\Http\Requests\TripUpdateRequest $request
-     * @param \App\Models\Trip $trip
+     * @param TripUpdateRequest $request
+     * @param Space $space
+     * @param Trip $trip
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function update(TripUpdateRequest $request, Trip $trip)
+    public function update(TripUpdateRequest $request, Space $space, Trip $trip)
     {
         $this->authorize('update', $trip);
 
-        $validated = $request->validated();
         $trip->users()->sync($request->users);
+        $validated = $request->validated();
 
         $trip->update($validated);
 
         return redirect()
-            ->route('trips.edit', $trip)
+            ->route('spaces.show', ['space' => $space])
             ->withSuccess(__('crud.common.saved'));
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Trip $trip
+     * @param Request $request
+     * @param Space $space
+     * @param Trip $trip
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function destroy(Request $request, Trip $trip)
+    public function destroy(Request $request, Space $space, Trip $trip)
     {
         $this->authorize('delete', $trip);
 

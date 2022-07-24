@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Space;
 use App\Models\Trip;
 use App\Models\User;
 use App\Models\Expense;
@@ -12,10 +13,13 @@ use App\Http\Requests\ExpenseUpdateRequest;
 class ExpenseController extends Controller
 {
     /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Space $space
+     * @param Trip $trip
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function index(Request $request)
+    public function index(Request $request, Space $space, Trip $trip)
     {
         $this->authorize('view-any', Expense::class);
 
@@ -30,69 +34,82 @@ class ExpenseController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @param Space $space
+     * @param Trip $trip
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function create(Request $request)
+    public function create(Space $space, Trip $trip)
     {
         $this->authorize('create', Expense::class);
 
-        $trips = Trip::pluck('name', 'id');
-        $users = User::pluck('name', 'id');
+        $users = $trip->users()->pluck('name', 'id');
 
-        return view('app.expenses.create', compact('trips', 'users'));
+        return view('app.expenses.create', compact('users', 'space', 'trip'));
     }
 
     /**
-     * @param \App\Http\Requests\ExpenseStoreRequest $request
+     * @param ExpenseStoreRequest $request
+     * @param Space $space
+     * @param Trip $trip
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function store(ExpenseStoreRequest $request)
+    public function store(ExpenseStoreRequest $request, Space $space, Trip $trip)
     {
         $this->authorize('create', Expense::class);
 
         $validated = $request->validated();
+        $validated['trip_id'] = $trip->id;
 
-        $expense = Expense::create($validated);
+        Expense::create($validated);
 
         return redirect()
-            ->route('expenses.edit', $expense)
+            ->route('trips.show', ['space' => $space, 'trip' => $trip])
             ->withSuccess(__('crud.common.created'));
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Expense $expense
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Space $space
+     * @param Trip $trip
+     * @param Expense $expense
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function show(Request $request, Expense $expense)
+    public function show(Request $request, Space $space, Trip $trip, Expense $expense)
     {
         $this->authorize('view', $expense);
 
-        return view('app.expenses.show', compact('expense'));
+        return view('app.expenses.show', compact('expense', 'space', 'trip'));
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Expense $expense
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Space $space
+     * @param Trip $trip
+     * @param Expense $expense
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function edit(Request $request, Expense $expense)
+    public function edit(Request $request, Space $space, Trip $trip, Expense $expense)
     {
         $this->authorize('update', $expense);
 
-        $trips = Trip::pluck('name', 'id');
-        $users = User::pluck('name', 'id');
+        $users = $trip->users()->pluck('name', 'id');
 
-        return view('app.expenses.edit', compact('expense', 'trips', 'users'));
+        return view('app.expenses.edit', compact('expense', 'users', 'space', 'trip'));
     }
 
     /**
-     * @param \App\Http\Requests\ExpenseUpdateRequest $request
-     * @param \App\Models\Expense $expense
+     * @param ExpenseUpdateRequest $request
+     * @param Space $space
+     * @param Trip $trip
+     * @param Expense $expense
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function update(ExpenseUpdateRequest $request, Expense $expense)
+    public function update(ExpenseUpdateRequest $request, Space $space, Trip $trip, Expense $expense)
     {
         $this->authorize('update', $expense);
 
@@ -101,16 +118,19 @@ class ExpenseController extends Controller
         $expense->update($validated);
 
         return redirect()
-            ->route('expenses.edit', $expense)
+            ->route('trips.show', ['space' => $space, 'trip' => $trip])
             ->withSuccess(__('crud.common.saved'));
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Expense $expense
+     * @param Request $request
+     * @param Space $space
+     * @param Trip $trip
+     * @param Expense $expense
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function destroy(Request $request, Expense $expense)
+    public function destroy(Request $request, Space $space, Trip $trip, Expense $expense)
     {
         $this->authorize('delete', $expense);
 

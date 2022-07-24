@@ -9,7 +9,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <x-partials.card>
                 <x-slot name="title">
-                    <a href="{{ route('expenses.index') }}" class="mr-4"
+                    <a href="{{ route('trips.show', ['space' => $space, 'trip' => $trip]) }}" class="mr-4"
                         ><i class="mr-1 icon ion-md-arrow-back"></i
                     ></a>
                     @lang('crud.expenses.show_title')
@@ -49,13 +49,13 @@
                 </div>
 
                 <div class="mt-10">
-                    <a href="{{ route('expenses.index') }}" class="button">
+                    <a href="{{ route('trips.show', ['space' => $space, 'trip' => $trip]) }}" class="button">
                         <i class="mr-1 icon ion-md-return-left"></i>
-                        @lang('crud.common.back')
+                        Back to Trip
                     </a>
 
                     @can('create', App\Models\Expense::class)
-                    <a href="{{ route('expenses.create') }}" class="button">
+                    <a href="{{ route('expenses.create', ['space' => $space, 'trip' => $trip]) }}" class="button">
                         <i class="mr-1 icon ion-md-add"></i>
                         @lang('crud.common.create')
                     </a>

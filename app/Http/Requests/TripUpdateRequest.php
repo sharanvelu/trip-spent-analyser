@@ -24,9 +24,8 @@ class TripUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'space_id' => ['required', 'exists:spaces,id'],
             'name' => ['required', 'max:255', 'string'],
-            'description' => ['required', 'max:255', 'string'],
+            'description' => ['nullable', 'max:255', 'string'],
             'from_date' => ['required', 'date'],
             'to_date' => ['required', 'date'],
             'users' => ['array'],

@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ExpenseSplitController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TripController;
@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SpaceController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\PermissionController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,10 +22,10 @@ use App\Http\Controllers\PermissionController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('spaces.index');
 });
 
-Auth::routes();
+\Illuminate\Support\Facades\Auth::routes();
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
@@ -36,10 +37,11 @@ Route::prefix('/')
 
         Route::resource('users', UserController::class);
         Route::resource('spaces', SpaceController::class);
-        Route::resource('trips', TripController::class);
-        Route::resource('expenses', ExpenseController::class);
+        Route::prefix('spaces/{space}')->group(function () {
+            Route::resource('trips', TripController::class);
+            Route::prefix('trips/{trip}')->group(function () {
+                Route::resource('expenses', ExpenseController::class);
+                Route::get('expense_split', [ExpenseSplitController::class, 'index'])->name('expenses.split');
+            });
+        });
     });
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

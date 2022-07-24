@@ -24,7 +24,6 @@ class ExpenseUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'trip_id' => ['required', 'exists:trips,id'],
             'user_id' => ['required', 'exists:users,id'],
             'description' => ['nullable', 'max:255', 'string'],
             'type' => ['required', 'max:255', 'string'],

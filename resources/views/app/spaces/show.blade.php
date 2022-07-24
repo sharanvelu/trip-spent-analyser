@@ -9,9 +9,9 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <x-partials.card>
                 <x-slot name="title">
-                    <a href="{{ route('spaces.index') }}" class="mr-4"
-                        ><i class="mr-1 icon ion-md-arrow-back"></i
-                    ></a>
+                    <a href="{{ route('spaces.index') }}" class="mr-4">
+                        <i class="mr-1 icon ion-md-arrow-back"></i>
+                    </a>
                     @lang('crud.spaces.show_title')
                 </x-slot>
 
@@ -28,6 +28,9 @@
                         </h5>
                         <span>{{ $space->description ?? '-' }}</span>
                     </div>
+
+                    @include('app.trips.index')
+
                 </div>
 
                 <div class="mt-10">
@@ -37,9 +40,9 @@
                     </a>
 
                     @can('create', App\Models\Space::class)
-                    <a href="{{ route('spaces.create') }}" class="button">
-                        <i class="mr-1 icon ion-md-add"></i>
-                        @lang('crud.common.create')
+                    <a href="{{ route('spaces.edit', $space) }}" class="button">
+                        <i class="mr-1 icon ion-md-create"></i>
+                        @lang('crud.common.edit')
                     </a>
                     @endcan
                 </div>

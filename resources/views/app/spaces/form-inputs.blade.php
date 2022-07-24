@@ -17,9 +17,6 @@
             name="description"
             label="Description"
             maxlength="255"
-            required
-            >{{ old('description', ($editing ? $space->description : ''))
-            }}</x-inputs.textarea
-        >
+        >{{ old('description', ($editing ? $space->description : '')) }}</x-inputs.textarea>
     </x-inputs.group>
 </div>
