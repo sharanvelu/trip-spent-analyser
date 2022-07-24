@@ -23,7 +23,7 @@ COPY docker-deployment/apache.conf /etc/apache2/sites-available/000-default.conf
 
 COPY . /var/www/html
 
-RUN chmod -R 777 /var/www/html
+RUN chmod -R 777 /var/www/html && chmod -R 777 /var/www/html/storage
 
 RUN composer install
 
