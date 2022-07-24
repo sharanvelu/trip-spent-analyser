@@ -23,9 +23,12 @@ COPY docker-deployment/apache.conf /etc/apache2/sites-available/000-default.conf
 
 COPY . /var/www/html
 
-RUN chmod -R 777 /var/www/html && chmod -R 777 /var/www/html/storage
+RUN chmod -R 777 /var/www/html
 
 RUN composer install
+
+RUN apt-get install -y npm && npm cache clean -f && npm install -g n && n stable
+RUN npm install && npm run build
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
